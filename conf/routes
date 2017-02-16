@@ -1,0 +1,56 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET         /                                controllers.Application.index()
+GET         /dashboard                       controllers.Dashboard.index()
+
+POST        /login                           controllers.Application.authenticate()
+GET         /logout                          controllers.Application.logout()
+
+GET         /settings                        controllers.account.settings.Index.index()
+GET         /settings/password               controllers.account.settings.Password.index()
+POST        /settings/password               controllers.account.settings.Password.runPassword()
+GET         /settings/email                  controllers.account.settings.Email.index()
+POST        /settings/email                  controllers.account.settings.Email.runEmail()
+
+# Registers the user, sending an email to confirm the account.
+GET         /signup                          controllers.account.Signup.create()
+POST        /signup                          controllers.account.Signup.save()
+
+# Accessed when the user confirms the registration.
+GET         /confirm/:confirmToken           controllers.account.Signup.confirm(confirmToken:String)
+
+# Displays a page to send a reset email given the user's email.
+GET         /reset/ask                       controllers.account.Reset.ask()
+POST        /reset/ask                       controllers.account.Reset.runAsk()
+
+# Resets the password using the password.
+GET         /reset/:token                    controllers.account.Reset.reset(token:String)
+POST        /reset/:token                    controllers.account.Reset.runReset(token:String)
+
+GET         /email/:token                    controllers.account.settings.Email.validateEmail(token:String)
+
+# Map static resources from the /public folder to the /assets URL path
+GET         /assets/*file                    controllers.Assets.at(path="/public", file)
+# http://stackoverflow.com/questions/25217624/use-multiple-assets-route-in-play-framework-2
+# https://groups.google.com/forum/#!topic/play-framework/uviABa9zOLU
+GET         /data/*file                     controllers.ExternalAssets.at(path="data", file)
+
+# map projects
+GET         /projects                        controllers.project.Index.index()
+GET         /projects/setup                  controllers.project.Setup.index()
+# Delete basado en aplicación demo Zentask (https://github.com/remylab/play-zentask/blob/master/conf/routes)
+# Para pruebas, arranco con GET, pero luego pasaré a DELETE (o a lo sumo POST), con /:id como parámetro.
+DELETE      /projects/setup/deleteProject/:id    controllers.project.Setup.delete(id: Long)
+POST        /projects/setup/upload           controllers.project.Setup.upload()
+GET         /projects/display/:id            controllers.project.Display.index(id: Long)
+
+
+#GET         /markers                      controllers.Markers.index()
+GET         /markers/generate/:data          controllers.Markers.generate(data: String)
+GET         /markers/files/:file             controllers.Markers.getFile(file: String)
+
+GET         /3dmodels/info/:projectid        controllers.Models3D.getInfo(projectid: Long)
+GET         /3dmodels/file/:projectid        controllers.Models3D.getFile(projectid: Long)

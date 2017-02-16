@@ -1,0 +1,209 @@
+@(user: User, projects: List[Project])
+
+@******
+documentacion util de como usar el templating en scala https://www.playframework.com/documentation/2.0/ScalaTemplates
+
+tambien podemos sacar muchos ejemplos de como dejar la pagina mas linda con bootstrap y sus ejemplos
+
+http://getbootstrap.com/2.3.2/getting-started.html#examples
+
+y copiar el codigo html de lo que nos parece bien
+*****@
+@*******************************************
+Para entender como agregué los scripts que voy a poner a continuación, ver
+https://www.playframework.com/documentation/2.5.x/ScalaTemplateUseCases#morescripts-and-morestyles-equivalents
+Antes de necesitar agregar estos scripts usabamos "@main(user)", en vez de "@main(user, scripts)"
+*******************************************@
+@scripts = {
+    <script type="text/javascript">
+@***            (function () {
+                $(document).on("click", ".eliminar", function() {
+                    var thisRowProjectId = $(this).data('id');
+                    $(".modal-body #projectName").html("thisRowProjectId");
+                });
+            });
+
+            (function(){
+                $(document).on("clink", "#pruebita", function(){
+                    alert("Funciona");
+                })
+            })
+            (function() {
+                var pru = document.getElementById("pruebita");
+                pru.addEventListener("click", function (){alert("Funciona 2");},false);
+                })
+
+        (function () {
+        $(document).on("click", "#pruebita", function(){
+        alert("Funciona");
+        });
+        });
+ alert("Hellow!");***@
+    </script>
+}
+
+@display(project: models.Project) = {
+    @project.name (@project.description)
+}
+
+@main(user, scripts) {
+
+    Proyectos
+    <br/>
+    <p/>
+    <br/>
+
+    <table class="table table-bordered table-striped responsive-utilities">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripcion</th>
+            </tr>
+        </thead>
+        <tbody>
+            @projects.map { p =>
+                <tr id="row_@p.id">
+                    <td><a href="@controllers.project.routes.Display.index(p.id)">@p.name</a></td>
+                    <td>@p.description</td>
+                    <td><a href="" class="btn btn-danger btn-sm eliminar" data-id="@p.id" data-name="@p.name" data-toggle="modal" data-target="#modalConfirma">
+                        <span class="glyphicon glyphicon-remove">Eliminar</span>
+                        </a>
+                    </td>
+                    <!-- <td><a href="" class="btn btn-inf btn-sm">Prueba</a></td> -->
+                </tr>
+            }
+
+        </tbody>
+    </table>
+
+        <!-- Modal -->
+    <div id="modalConfirma" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+                <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Confirmación</h4>
+                </div>
+                <div class="modal-body">
+                    <p>¿Borrar proyecto <span id="projectName"></span>?<span id="apretaste"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                    @***Observar a continuación que el botón o anchor en el modal que tiene un objetivo distinto al de cerrar el diálogo,
+                    NO lleva el atributo data-dismiss, pues en tal caso ignora su atributo href. Igualmente, cerrará el diálogo.
+                    Respecto a utilizar href="./projects/setup/deleteProject/3" o href="@controllers.project.routes.Setup.delete(2)",
+                    ambas formas funcionan. Creo que es mejor utilizar la primera, para poder cambiar la action -de necesitar hacerlo- sin tocar
+                    el código disperso por el proyecto.***@
+                    @***<a href="@controllers.project.routes.Setup.delete(2)" id="modalBotonAceptar" class="btn btn-danger" role="button">Aceptar</a>***@
+                    @***<a href="./projects/setup/deleteProject/3" id="modalBotonAceptar" data-projectForDeletionId="-1" class="btn btn-danger" role="button">Aceptar</a>***@
+                    <a id="modalBotonAceptar" data-projectForDeletionId="-1" class="btn btn-danger" role="button">Aceptar</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <br/>
+
+    <a class="btn btn-large btn-success" href="@controllers.project.routes.Setup.index()">Nuevo Proyecto</a>
+    <br/>
+
+    <!-- Para que cuando abra el modal, éste mencione el nombre del proyecto a borrar. -->
+    <script>
+            $("#modalConfirma").on("show.bs.modal", function (e) {
+                var nombreDelProyecto = $(e.relatedTarget).attr('data-name');
+                var idDelProyecto = $(e.relatedTarget).attr('data-id');
+                $(this).find("#projectName").html("<b>" + '"' + nombreDelProyecto + '"' + "</b>" + " (id: " + idDelProyecto + ")");
+                @***<!--Asocio al botón "Aceptar" de este modal el id del proyecto a borrar creando un atributo.-->***@
+                $('#modalBotonAceptar').attr('data-projectForDeletionId', idDelProyecto);
+            });
+    </script>
+
+    <!-- Para que al presionar el botón "Aceptar" en el Modal, invoque a la action de borrado con el id que corresponde. -->
+    <script>
+        function borrarFilaPorId(id){
+            $("#row_"+id).fadeOut(500);
+        }
+
+        $("#modalBotonAceptar").click(function() {
+            var URLBorrado = "./projects/setup/deleteProject/" + $("#modalBotonAceptar").attr('data-projectForDeletionId');
+            // $("#apretaste").append( "<p>" + URLBorrado + "Si, ya aprete</p>" );
+            @*** Hacer "window.location.assign(URLBorrado);" funciona, pues nos conduce a la action, pero
+             visualmente es una porquería, pues va a redibujar toda la pantalla. La idea es hacerlo con ajax,
+             y ya que estamos, usando el verbo http apropiado, delete. Es lo que haré a continuación. ***@
+            @*** Para armar la llamada ajax ver:
+             1.- http://stackoverflow.com/questions/5225597/set-timeout-for-ajax-jquery
+             2.- http://api.jquery.com/jQuery.ajax/ ***@
+            $.ajax({
+                url: URLBorrado,
+                type: 'DELETE',
+                error: function(){$("#apretaste").append( "<p>Falló el borrrado.</p>" );},
+                success: function(){
+                    var idDelProyectoABorrar = $("#modalBotonAceptar").attr('data-projectForDeletionId');
+                    borrarFilaPorId(idDelProyectoABorrar);
+                    // $("#apretaste").append( "<p>Funciono !</p>" );
+                    // console.log("Estoy dentro del success.");
+                    $(this).cerrar = "true";
+                    $("#modalConfirma").modal('hide');
+                },
+                timeout: 5000
+            });
+        });
+    </script>
+
+    @***
+    <!-- En ppio. borra la linea de la tabla. Luego, haré que borre el dato de la BD con ajax, y
+    tras confirmar el éxito de la operación, borrará la línea de la tabla. NO ME GUSTA porque no está
+    respetando el paradigma de Progressive Enhancement, ya que si JavaScript no está activado, no podré borrar
+    el proyecto. Para esto, ver de hacer andar este botón aceptar con href, en vez de usar jQuery asociado
+    al evento "on" mediante el id #modalBotonAceptar.-->
+    ***@
+    <script>
+        function del(id){
+            $("#row_"+id).fadeOut(500);
+            <!--alert("Se mandó a borrar el registro con el id " +id);-->
+        }
+        $("#modalBotonAceptar").on("click", function(e){
+            <!--var idDelProyectoABorrar = $(e.relatedTarget).attr('data-projectForDeletionId');-->
+            <!-- var idDelProyectoABorrar = $(this).attr('data-projectForDeletionId'); -->
+            <!-- del(idDelProyectoABorrar); -->
+        });
+
+    </script>
+
+}
+
+@****
+Para la tabla, lo mejor es Hover Rows, http://www.w3schools.com/bootstrap/bootstrap_tables.asp
+
+Para darle cierto estilo al boton de borrado, http://www.w3schools.com/bootstrap/bootstrap_glyphicons.asp ,
+muy buenos los ejemplos mostrados en el "Try it yourself". Y de acuerdo a
+http://www.w3schools.com/bootstrap/bootstrap_ref_comp_glyphs.asp , usaremos el glyphicon glyphicon-remove
+
+El sgte script fue tomado de https://github.com/opensas/play-demo/blob/master/app/views/Application/list.html
+<script>
+        function del(id) {
+            $.ajax( {
+                type: "DELETE",
+                url: '/event/' + id
+            });
+            $("#row_" + id).fadeOut(1000);
+        }
+</script>
+Desde el html lo invoca así:
+<td><a href="javascript:del(${event.id})"><img src="@{'/public/images/delete.jpg'}" /></a></td>
+
+    *****@
+
+    @*****
+    Notas sobre href:
+    (1) href="" es una referencia a la página actual, por lo que hace un refresh de la página.
+    (2) href="#" va la parte superior de la página.
+    (3) href="#id" va a un id definido en la página.
+    (4) href="#!" no va a ningún lado, se queda en donde está (Bueno, nadie debería definir un id "!", claro.
+    (5) href="javascript:alert('Hello');" ejecuta el script.
+    (6) Si omito poner el href en un anchor, este ancho no será un hyperlink y entonces no se dispararán los
+    como onclick que necesito. Esto último no lo probé, pero bueno, seguramente es así.
+    ****@

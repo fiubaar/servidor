@@ -1,0 +1,55 @@
+@(user: User, projectForm: Form[controllers.project.Setup.ProjectForm])
+
+@*
+algo de info que quizas es util para hacer formularios que se vean un poco mejor
+http://chromygabor.github.io/posts/2013/12/23/Tips-and-tricks-with-play-framework-Templates/
+
+https://github.com/playframework/playframework/tree/2.2.x/samples/java/forms
+ese ejemplo tiene varios views que usan forms y bootstrap
+*@
+
+@title = {
+    Nuevo Proyecto
+}
+
+@main(user) {
+
+    @helper.form(action = controllers.project.routes.Setup.upload,
+        'id -> "uploadForm",
+        'enctype -> "multipart/form-data") {
+
+        <fieldset>
+            <legend>Nuevo Proyecto</legend>
+
+            @helper.inputText(
+                projectForm("name"),
+                '_label -> "Name"
+            )
+
+            @helper.inputText(
+                projectForm("description"),
+                '_label -> "Description"
+            )
+
+            @helper.inputFile(
+                projectForm("logo"),
+                '_label -> "Logo",
+                '_help -> "Imagen que representa el logo del Proyecto o Campaña"
+            )
+
+            @helper.inputFile(
+                projectForm("3DModel"),
+                '_label -> "3D Model export",
+                '_help -> "Archivo ZIP que contiene el modelo 3D completo y sus dependencias"
+            )
+
+        </fieldset>
+
+            <div class="actions">
+                <input type="submit" class="btn btn-primary" value="Crear">
+                <a href="@controllers.project.routes.Index.index()" class="btn btn-danger">Cancelar</a>
+            </div>
+    }
+    <br/>
+
+}

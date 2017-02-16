@@ -1,0 +1,19 @@
+@(user: User, project: Project)
+
+@main(user) {
+
+    <h1>Project name: @project.name</h1>
+    <br/>
+
+    <img src="@routes.ExternalAssets.at(project.logo_filename)" class="img-rounded">
+
+    <br/>
+    <p class="lead">
+        Description: @project.description
+    </p>
+
+    <h3>Marker</h3>
+    <img src="@routes.ExternalAssets.at(project.qr_fileName)" class="img-polaroid">
+}
+
+
